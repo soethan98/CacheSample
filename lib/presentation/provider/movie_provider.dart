@@ -16,15 +16,23 @@ class MovieProvider with ChangeNotifier {
 
 
   void fetchAllMovies()async{
-    try {
-      _movieState = const MovieState.loading();
-      notifyListeners();
-      final result = await movieRepo.getPlayingNowMovies();
-      _movieState = MovieState.data(result);
-    } catch (e) {
-      _movieState = MovieState.error(e.toString());
-    }
-    notifyListeners();
+     _movieState = const MovieState.loading();
+     final result = await movieRepo.getPlayingNowMovies2();
+     if(result.data!=null){
+       _movieState = MovieState.data(result.data!);
+       notifyListeners();
+       return;
+     }
+     _movieState = MovieState.error(result.errorMsg!);
+     notifyListeners();
+    // try {
+    //   _movieState = const MovieState.loading();
+    //   notifyListeners();
+    //   final result = await movieRepo.getPlayingNowMovies2();
+    //   _movieState = MovieState.data(result);
+    // } catch (e) {
+    //   _movieState = MovieState.error(e.toString());
+    // }
   }
 
 }

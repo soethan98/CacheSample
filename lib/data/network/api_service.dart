@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:cache_sample/data/network/api_exceptions.dart';
 import 'package:http/http.dart';
 import 'package:injectable/injectable.dart';
 
@@ -10,15 +12,36 @@ class ApiClient {
   final Client _client;
   ApiClient(this._client);
 
-  dynamic get(String path, {Map<dynamic, dynamic>? params}) async {
-    final response = await _client.get(getPath(path,params), headers: {
+  Future<dynamic> get(String path, {Map<dynamic, dynamic>? params}) async {
+    Map<String, dynamic> responseJson;
+    try {
+       final response = await _client.get(getPath(path,params), headers: {
       'Content-Type': 'application/json',
     });
-    print(response.statusCode.toString());
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception(response.reasonPhrase);
+      responseJson = _returnResponse(response);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+    return responseJson;
+   
+  }
+
+
+  dynamic _returnResponse(Response response) {
+    switch (response.statusCode) {
+      case 200:
+        final responseJson = json.decode(response.body.toString());
+        print(responseJson);
+        return responseJson;
+      case 400:
+        throw BadRequestException(response.body.toString());
+      case 401:
+      case 403:
+        throw UnauthorisedException(response.body.toString());
+      case 500:
+      default:
+        throw FetchDataException(
+            'Error occured while Communication with Server with StatusCode : ${response.statusCode}');
     }
   }
 
