@@ -10,8 +10,7 @@ import 'package:injectable/injectable.dart';
 import '../domain/result.dart';
 
 abstract class MovieRepo {
-  Future<List<MovieEntity>> getPlayingNowMovies();
-  Future<Resource<List<MovieEntity>>> getPlayingNowMovies2();
+  Future<Resource<List<MovieEntity>>> getPlayingNowMovies();
 }
 
 @LazySingleton(as: MovieRepo)
@@ -26,18 +25,10 @@ class MovieRepoImpl implements MovieRepo {
   MovieRepoImpl({required this.localDatasource,
   required this.remoteDataSource});
   
-  @override
-  Future<List<MovieEntity>> getPlayingNowMovies() async{
-    
-    final response = await remoteDataSource.getPlayingNow();
-    await localDatasource.insertAllMovies(movieDtoMapper.fromResponse(response));
-
-    final dbResult = await  localDatasource.getAllMovies();
-    return movieEntityMapper.tos(dbResult);
-  }
+  
 
   @override
-  Future<Resource<List<MovieEntity>>> getPlayingNowMovies2(){
+  Future<Resource<List<MovieEntity>>> getPlayingNowMovies(){
 
     return networkBoundResource<List<MovieEntity>,List<MovieModel>>(shouldFetch: (data) => true,
      createNetworkCall: ()=>remoteDataSource.getPlayingNow(),
